@@ -171,6 +171,31 @@ class TrayManager {
       resultData['height'],
     );
   }
+
+  /// Gets the bounds of the screen where this tray icon is visible.
+  ///
+  /// TODO(bselwe): Add support for macOS.
+  ///
+  /// @platforms windows
+  Future<Rect?> getScreenBounds() async {
+    final Map<String, dynamic> arguments = {
+      'devicePixelRatio': window.devicePixelRatio,
+    };
+    final Map<dynamic, dynamic>? resultData = await _channel.invokeMethod(
+      'getScreenBounds',
+      arguments,
+    );
+    print(resultData);
+    if (resultData == null) {
+      return null;
+    }
+    return Rect.fromLTWH(
+      resultData['x'],
+      resultData['y'],
+      resultData['width'],
+      resultData['height'],
+    );
+  }
 }
 
 final trayManager = TrayManager.instance;

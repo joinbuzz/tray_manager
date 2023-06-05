@@ -241,11 +241,24 @@ class _HomePageState extends State<HomePage> with TrayListener {
               title: Text('getBounds'),
               onTap: () async {
                 Rect? bounds = await trayManager.getBounds();
+
                 if (bounds != null) {
                   Size size = bounds.size;
                   Offset origin = bounds.topLeft;
                   BotToast.showText(
                     text: '${size.toString()}\n${origin.toString()}',
+                  );
+                }
+              },
+            ),
+            PreferenceListItem(
+              title: Text('getScreenBounds'),
+              onTap: () async {
+                Rect? bounds = await trayManager.getScreenBounds();
+
+                if (bounds != null) {
+                  BotToast.showText(
+                    text: '${bounds.toString()}',
                   );
                 }
               },
