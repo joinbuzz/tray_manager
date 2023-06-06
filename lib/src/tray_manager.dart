@@ -155,7 +155,7 @@ class TrayManager {
   /// The bounds of this tray icon.
   Future<Rect?> getBounds() async {
     final Map<String, dynamic> arguments = {
-      'devicePixelRatio': window.devicePixelRatio,
+      'devicePixelRatio': _getDevicePixelRatio(),
     };
     final Map<dynamic, dynamic>? resultData = await _channel.invokeMethod(
       'getBounds',
@@ -170,6 +170,36 @@ class TrayManager {
       resultData['width'],
       resultData['height'],
     );
+  }
+
+  /// Gets the bounds of the screen where this tray icon is visible.
+  ///
+  /// TODO(bselwe): Add support for macOS.
+  ///
+  /// @platforms windows
+  Future<Rect?> getScreenBounds() async {
+    final Map<String, dynamic> arguments = {
+      'devicePixelRatio': _getDevicePixelRatio(),
+    };
+    final Map<dynamic, dynamic>? resultData = await _channel.invokeMethod(
+      'getScreenBounds',
+      arguments,
+    );
+    print(resultData);
+    if (resultData == null) {
+      return null;
+    }
+    return Rect.fromLTWH(
+      resultData['x'],
+      resultData['y'],
+      resultData['width'],
+      resultData['height'],
+    );
+  }
+
+  double _getDevicePixelRatio() {
+    // Remove this deprecated member in subsequent versions.
+    return window.devicePixelRatio;
   }
 }
 

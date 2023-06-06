@@ -80,6 +80,9 @@ class TrayManagerPlugin : public flutter::Plugin {
   void TrayManagerPlugin::GetBounds(
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  void TrayManagerPlugin::GetScreenBounds(
+      const flutter::MethodCall<flutter::EncodableValue>& method_call,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
   // Called when a method is called on this plugin's channel from Dart.
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
@@ -341,6 +344,46 @@ void TrayManagerPlugin::GetBounds(
   result->Success(flutter::EncodableValue(resultMap));
 }
 
+void TrayManagerPlugin::GetScreenBounds(
+    const flutter::MethodCall<flutter::EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  const flutter::EncodableMap& args =
+      std::get<flutter::EncodableMap>(*method_call.arguments());
+
+  if (!tray_icon_setted) {
+    result->Success();
+    return;
+  }
+
+  double devicePixelRatio =
+      std::get<double>(args.at(flutter::EncodableValue("devicePixelRatio")));
+
+  flutter::EncodableMap resultMap = flutter::EncodableMap();
+
+  HWND iconWindow = niif.hWnd;
+  HMONITOR monitor = MonitorFromWindow(iconWindow, MONITOR_DEFAULTTOPRIMARY);
+  MONITORINFO monitorInfo;
+  monitorInfo.cbSize = sizeof(monitorInfo);
+  GetMonitorInfo(monitor, &monitorInfo);
+  RECT visibleScreenFrame = monitorInfo.rcWork;
+
+  double screenX = visibleScreenFrame.left / devicePixelRatio * 1.0f;
+  double screenY = visibleScreenFrame.top / devicePixelRatio * 1.0f;
+  double screenWidth = (visibleScreenFrame.right - visibleScreenFrame.left) / devicePixelRatio * 1.0f;
+  double screenHeight = (visibleScreenFrame.bottom - visibleScreenFrame.top) / devicePixelRatio * 1.0f;
+
+  resultMap[flutter::EncodableValue("x")] =
+      flutter::EncodableValue(screenX);
+  resultMap[flutter::EncodableValue("y")] =
+      flutter::EncodableValue(screenY);  
+  resultMap[flutter::EncodableValue("width")] =
+      flutter::EncodableValue(screenWidth);
+  resultMap[flutter::EncodableValue("height")] =
+      flutter::EncodableValue(screenHeight);
+
+  result->Success(flutter::EncodableValue(resultMap));
+}
+
 void TrayManagerPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
@@ -356,6 +399,8 @@ void TrayManagerPlugin::HandleMethodCall(
     PopUpContextMenu(method_call, std::move(result));
   } else if (method_call.method_name().compare("getBounds") == 0) {
     GetBounds(method_call, std::move(result));
+  } else if (method_call.method_name().compare("getScreenBounds") == 0) {
+    GetScreenBounds(method_call, std::move(result));
   } else {
     result->NotImplemented();
   }
